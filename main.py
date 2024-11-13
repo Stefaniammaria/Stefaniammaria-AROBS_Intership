@@ -54,11 +54,13 @@ try:
     )
     youtube_video.click()  # click pe elementul gasit
 
+    #cream instante ale claselor si pornim thread-urile
     audio_recorder = AudioRecorder()
     audio_recorder_thread = audio_recorder.start_recording(10)
     video_recorder = ScreenRecorder()
     video_recorder_thread = video_recorder.start_recording(10)
 
+    #avem nevoie de join pentru a opri executia codului in acest punct pana la terminarea thread-urilor de recording
     audio_recorder_thread.join()
     video_recorder_thread.join()
 
