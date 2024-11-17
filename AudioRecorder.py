@@ -1,6 +1,7 @@
+import audioop
+import math
 import time
 import threading
-import os
 import wave
 import pyaudio
 
@@ -10,13 +11,13 @@ FORMAT = pyaudio.paInt16
 CHANNELS = 2
 RATE = 44100
 RECORD_SECONDS = 10
-WAVE_OUTPUT_FILENAME = "audioOut.wav"
 STEREO_MIXER_INDEX = 2
 
 #clasa pentru audio recorder
 class AudioRecorder:
     #constructorul clasei
-    def __init__(self):
+    def __init__(self, filename):
+        self.filename = filename
         self.p_audio = pyaudio.PyAudio()
         self.stream = self.p_audio.open(format=FORMAT,
                              channels=CHANNELS,
@@ -24,15 +25,17 @@ class AudioRecorder:
                              input=True,
                              input_device_index=STEREO_MIXER_INDEX,
                              frames_per_buffer=CHUNK)
+        self.last_file_average_decibels = 0
 
     #functia ce creaza thread-ul ce va face handle la partea de inregistrare audio
     def start_recording(self, duration):
         thread = threading.Thread(target=self.record_for_duration, name='Audio Recorder Thread', args=(duration,))
-        thread.start()
         return thread
 
     #functia pentru inregistrarea audio pentru o durata anume de timp
     def record_for_duration(self, duration):
+        average_rms = 0
+        chunk_count = 0
         frames = []
         starting_time = time.time() #initializam timpul la care a pornit inregistrarea
         print("starting audio recording")
@@ -41,12 +44,20 @@ class AudioRecorder:
         while time.time() < starting_time + duration:
             data = self.stream.read(CHUNK)
             frames.append(data)
+            # adunam la totalul rms-ului valoarea chunkului, pentru calcularea mediei
+            average_rms += audioop.rms(data, 2)
+            chunk_count += 1
+
+        # calculam rms mediu
+        average_rms /= chunk_count
+        # convertim din rms in dB si salvam rezultatul in proprietatea "last_file_average_decibels" a obiectului
+        self.last_file_average_decibels = 20 * math.log10(average_rms)
 
         #inchiderea stream-ului si scrierea in fisier a datelor
         self.stream.stop_stream()
         self.stream.close()
         self.p_audio.terminate()
-        wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
+        wf = wave.open(self.filename, 'wb')
         wf.setnchannels(CHANNELS)
         wf.setsampwidth(self.p_audio.get_sample_size(FORMAT))
         wf.setframerate(RATE)
