@@ -1,5 +1,5 @@
 from selenium import webdriver
-from selenium.common import TimeoutException
+from selenium.common import TimeoutException, WebDriverException
 from selenium.webdriver.chrome.service import Service #setarea path-ului
 from selenium.webdriver.common.by import By #acces la cautare dupa proprietati
 from selenium.webdriver.common.keys import Keys #ne da acces la taste precum ESC, Space, Enter etc
@@ -24,11 +24,12 @@ logger.log_message("Specified the path to the Chrome driver.")
 driver = webdriver.Chrome(service=service)
 logger.log_message("Initialized the Chrome driver.")
 
-# Deschide site-ul dorit (in cazul nostru YouTube)
-driver.get("https://www.youtube.com")
-logger.log_message("Opening " + driver.title + ".")
-
 try:
+    # Deschide site-ul dorit (in cazul nostru YouTube)
+    # Verificam daca site-ul se deschide
+    driver.get("https://www.youtube.com")
+    logger.log_message("Opening " + driver.title + ".")
+
     try:
         #cautarea butonului de "Accept All" folosind XPATH
         logger.log_message("Searching for the \"Accept All\" button to accept and close the cookies pop-up.")
@@ -39,6 +40,12 @@ try:
         logger.log_message("Accepted the cookies from YouTube, the pop-up is closing.")
     except TimeoutException:
         logger.log_message("Timed out waiting for consent button. Maybe there is no consent required...")
+
+    #cautam un element ce exista mereu pe pagina de YouTube indiferent de unde navighezi in aplicatie pentru a vedea daca s-a incarcat pagina
+    #cautam bara de sus a aplicatiei ce contine logo-ul de la Youtube, bara de search, butonul de profil si multe altele
+    consentButton = WebDriverWait(driver, 30).until(
+        EC.presence_of_element_located((By.ID, "masthead"))
+    )
 
     time.sleep(2)  # timp pentru a inchide modalul de consent
     # search_query = "name"-ul elementului cu care vrem sa lucram, il gasim dand click dreapta pe un element si inspect
@@ -110,3 +117,7 @@ try:
 except TimeoutException:
     driver.quit()
     logger.log_message("An exception occurred, quiting the window.")
+except WebDriverException:
+    logger.log_message("The page didn't load, maybe there's no internet connection...")
+    driver.quit()
+    exit()

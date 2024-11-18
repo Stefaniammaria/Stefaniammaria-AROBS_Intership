@@ -33,7 +33,7 @@ class ScreenRecorder:
         while current_time <= finish_time: #cat timp timpul curent este mai mic decat timpul la care trebuie sa se termine inregistrarea
             #daca diferenta de timp dintre timpul curent si ultimul screenshot este mai mare decat timpul calculat dintre doua screenshot-uri
             #se va face un nou screenshot
-            if current_time - last_screenshot_time >= (1.0 / fps): #* 0.95: # pentru a face screenshotul putin mai devreme, scadem perioada cu 5%
+            if current_time - last_screenshot_time >= (1.0 / fps): #* 0.95: # pentru a face screenshotul putin mai devreme si a ii da o marja de eroare, scadem perioada cu 5%
                 last_screenshot_time = current_time #se aloca timpul noului screenshot
                 img = pyautogui.screenshot() #crearea screenshot-ului
                 frame = np.array(img) #face imaginea un array

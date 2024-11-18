@@ -37,11 +37,10 @@ class AudioRecorder:
         average_rms = 0
         chunk_count = 0
         frames = []
-        starting_time = time.time() #initializam timpul la care a pornit inregistrarea
+        finishing_time = time.time() + duration #calculam timpul la care trebuie sa se termine inregistrarea
         print("starting audio recording")
-        #timpul la care trebuie sa se opreasca inregistrarea este suma dintre timpul de start si durata aleasa
         #cat timp timpul curent este mai mic decat timpul la care trebuie sa se opreasca din inregistrat
-        while time.time() < starting_time + duration:
+        while time.time() < finishing_time:
             data = self.stream.read(CHUNK)
             frames.append(data)
             # adunam la totalul rms-ului valoarea chunkului, pentru calcularea mediei
